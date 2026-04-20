@@ -1,0 +1,78 @@
+# =============================================================================
+# REST Client (VS Code / Cursor: humao.rest-client)
+# =============================================================================
+
+@baseUrl = https://localhost:4000
+@json = application/json
+
+### Register
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: {{json}}
+
+{
+  "username": "demo_user",
+  "password": "password123",
+  "email": "demo@example.com"
+}
+
+###
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{json}}
+
+{
+  "username": "demo_user",
+  "password": "password123"
+}
+
+###
+
+### Me
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{login.response.body.token}}
+
+# =============================================================================
+# REST Client (VS Code / Cursor: humao.rest-client)
+# =============================================================================
+
+@baseUrl = https://localhost:4000
+@json = application/json
+
+### Register
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: {{json}}
+
+{
+  "username": "demo_user",
+  "password": "password123",
+  "email": "demo@example.com"
+}
+
+###
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{json}}
+
+{
+  "username": "demo_user",
+  "password": "password123"
+}
+
+###
+
+### Me
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{login.response.body.token}}
+
+###
+
+### Feed (posts)
+GET {{baseUrl}}/posts?skip=0&limit=10
+Authorization: Bearer {{login.response.body.token}}
+
