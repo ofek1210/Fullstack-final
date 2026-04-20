@@ -1,0 +1,9 @@
+certs/
+node_modules/
+dist/
+uploads/
+!uploads/.keep
+.env
+.env.*
+!.env.example
+
