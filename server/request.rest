@@ -1,21 +1,11 @@
 # =============================================================================
 # REST Client (VS Code / Cursor: humao.rest-client)
 # =============================================================================
-# עדכן לפי הסביבה שלך:
-#   - ברירת מחדל: HTTPS על פורט 4000 (כמו ב-.env עם SSL)
-#   - אם רצים בלי SSL: שנה ל-http ולפורט המתאים (למשל PORT=4000)
-# תעודת self-signed: אם הבקשות נכשלות, הפעל ביטול אימות TLS בהגדרות הרחבה
-#   או השתמש ב-http לפיתוח מקומי.
-# =============================================================================
 
 @baseUrl = https://localhost:4000
 @json = application/json
 
-###############################################################################
-### משתנים — הרץ קודם Login (או Register) ואז השתמש ב-{{login.response...}}
-###############################################################################
-
-### Register — יצירת משתמש חדש
+### Register
 # @name register
 POST {{baseUrl}}/auth/register
 Content-Type: {{json}}
@@ -40,276 +30,33 @@ Content-Type: {{json}}
 
 ###
 
-### Refresh — החלפת access token
-# @name refresh
-POST {{baseUrl}}/auth/refresh
-Content-Type: {{json}}
-
-{
-  "refreshToken": "{{login.response.body.refreshToken}}"
-}
-
-###
-
-### Logout — ביטול refresh token
-# @name logout
-POST {{baseUrl}}/auth/logout
-Content-Type: {{json}}
-
-{
-  "refreshToken": "{{login.response.body.refreshToken}}"
-}
-
-###
-
-### Google OAuth — דורש access token אמיתי מ-Google (החלף את הערך)
-POST {{baseUrl}}/auth/google
-Content-Type: {{json}}
-
-{
-  "accessToken": "PASTE_GOOGLE_ACCESS_TOKEN_HERE"
-}
-
-###############################################################################
-
-### Profile — GET משתמש מחובר (נתיב מלא)
+### Me
 GET {{baseUrl}}/users/me
 Authorization: Bearer {{login.response.body.token}}
 
-###
-
-### Profile — GET דרך alias (אותו router מורכב גם על "/")
-GET {{baseUrl}}/me
-Authorization: Bearer {{login.response.body.token}}
-
-###
-
-### Profile — עדכון JSON (שם משתמש / אימייל וכו')
-PUT {{baseUrl}}/users/me
-Authorization: Bearer {{login.response.body.token}}
-Content-Type: {{json}}
-
-{
-  "username": "demo_user_renamed",
-  "email": "renamed@example.com",
-  "birthDate": "1990-01-15",
-  "gender": "other"
-}
-
-###
-
-### Profile — עדכון + קובץ אווטאר (multipart)
-# שנה את הנתיב לקובץ תמונה אמיתי במחשב שלך
-PATCH {{baseUrl}}/users/me
-Authorization: Bearer {{login.response.body.token}}
-Content-Type: multipart/form-data; boundary=----userAvatar
-
-------userAvatar
-Content-Disposition: form-data; name="username"
-
-demo_user_avatar
-------userAvatar
-Content-Disposition: form-data; name="avatar"; filename="avatar.png"
-Content-Type: image/png
-
-< ./path/to/local-avatar.png
-------userAvatar--
-
-###
-
-### משתמש אחר — פרופיל ציבורי (החלף USER_ID במזהה MongoDB אמיתי)
-GET {{baseUrl}}/users/profile/USER_ID
-Authorization: Bearer {{login.response.body.token}}
-
-###
-
-### משתמש אחר — פוסטים לפי userId (paging)
-GET {{baseUrl}}/posts/by-user/USER_ID?skip=0&limit=10
-Authorization: Bearer {{login.response.body.token}}
-
-###############################################################################
-
-### Requests — רשימה ציבורית
-GET {{baseUrl}}/requests
-
-###
-
-### Requests — יצירה (מאומת)
-# @name createRequest
-POST {{baseUrl}}/requests
-Authorization: Bearer {{login.response.body.token}}
-Content-Type: {{json}}
-
-{
-  "title": "בקשת עזרה לדוגמה",
-  "description": "תיאור מפורט של הבקשה"
-}
-
-###
-
-### Requests — לפי מזהה
-GET {{baseUrl}}/requests/{{createRequest.response.body._id}}
-
-###
-
-### Requests — עדכון (רק יוצר)
-PUT {{baseUrl}}/requests/{{createRequest.response.body._id}}
-Authorization: Bearer {{login.response.body.token}}
-Content-Type: {{json}}
-
-{
-  "title": "כותרת מעודכנת",
-  "description": "תיאור מעודכן",
-  "status": "in_progress"
-}
-
-###
-
-### Requests — מחיקה (רק יוצר)
-DELETE {{baseUrl}}/requests/{{createRequest.response.body._id}}
-Authorization: Bearer {{login.response.body.token}}
-
-###############################################################################
-
-### Posts — רשימה (מאומת, pagination)
-GET {{baseUrl}}/posts?skip=0&limit=10
-Authorization: Bearer {{login.response.body.token}}
-
-###
-
-### Posts — הפוסטים שלי
-GET {{baseUrl}}/posts/mine?skip=0&limit=10
-Authorization: Bearer {{login.response.body.token}}
-
-###
-
-### Posts — יצירה (טקסט בלבד)
-# @name createPost
-POST {{baseUrl}}/posts
-Authorization: Bearer {{login.response.body.token}}
-Content-Type: multipart/form-data; boundary=----postCreate
-
-------postCreate
-Content-Disposition: form-data; name="text"
-
-שלום, זה פוסט לבדיקה מ-request.rest
-------postCreate--
-
-###
-
-### Posts — לפי מזהה
-GET {{baseUrl}}/posts/{{createPost.response.body.id}}
-Authorization: Bearer {{login.response.body.token}}
-
-###
-
-### Posts — עדכון (טקסט; אופציונלי: שדה image עם קובץ)
-PUT {{baseUrl}}/posts/{{createPost.response.body.id}}
-Authorization: Bearer {{login.response.body.token}}
-Content-Type: multipart/form-data; boundary=----postUpdate
-
-------postUpdate
-Content-Disposition: form-data; name="text"
-
-טקסט מעודכן לפוסט
-------postUpdate--
-
-###############################################################################
-
-### Comments — רשימת תגובות לפוסט
-# דורש postId — החלף או הרץ קודם createPost והעתק id
-GET {{baseUrl}}/posts/{{createPost.response.body.id}}/comments?skip=0&limit=10
-Authorization: Bearer {{login.response.body.token}}
-
-###
-
-### Comments — הוספת תגובה
-# @name createComment
-POST {{baseUrl}}/posts/{{createPost.response.body.id}}/comments
-Authorization: Bearer {{login.response.body.token}}
-Content-Type: {{json}}
-
-{
-  "text": "תגובה לבדיקה מ-request.rest"
-}
-
-###############################################################################
-
-### Likes — לייק
-POST {{baseUrl}}/posts/{{createPost.response.body.id}}/like
-Authorization: Bearer {{login.response.body.token}}
-
-###
-
-### Likes — הסרת לייק
-DELETE {{baseUrl}}/posts/{{createPost.response.body.id}}/like
-Authorization: Bearer {{login.response.body.token}}
-
-###
-
-### Posts — מחיקה (הרץ אחרי תגובות/לייקים אם צריך את אותו postId)
-DELETE {{baseUrl}}/posts/{{createPost.response.body.id}}
-Authorization: Bearer {{login.response.body.token}}
-
-###############################################################################
-
-### AI — health
-GET {{baseUrl}}/ai/health
-Authorization: Bearer {{login.response.body.token}}
-
-###
-
-### AI — חיפוש סמנטי
-POST {{baseUrl}}/ai/search
-Authorization: Bearer {{login.response.body.token}}
-Content-Type: {{json}}
-
-{
-  "query": "חיפוש לדוגמה עם לפחות שלושה תווים",
-  "limit": 5,
-  "includeAnswer": true
-}
-
-###
-
-### AI — alias לחיפוש (זהה ל-/ai/search)
-POST {{baseUrl}}/ai/query
-Authorization: Bearer {{login.response.body.token}}
-Content-Type: {{json}}
-
-{
-  "query": "שאילתה חלופית דרך endpoint query",
-  "limit": 5,
-  "includeAnswer": false
-}
-
-###############################################################################
-
-### Swagger — מפרט OpenAPI (JSON)
-GET {{baseUrl}}/api-docs.json
-
-###
-
-### (אופציונלי) דפדפן — תיעוד אינטראקטיבי
-# GET {{baseUrl}}/api-docs
-
-###############################################################################
-
-### דוגמאות שגיאה / בדיקות מהירות (הרץ ידנית לפי הצורך)
-
-### Login שגוי — 401
-POST {{baseUrl}}/auth/login
-Content-Type: {{json}}
-
-{
-  "username": "לא_קיים",
-  "password": "password123"
-}
-
-###
-
-### רישום כפול — 409 (אחרי שכבר נרשמת עם אותו username)
+# =============================================================================
+# REST Client (VS Code / Cursor: humao.rest-client)
+# =============================================================================
+
+@baseUrl = https://localhost:4000
+@json = application/json
+
+### Register
+# @name register
 POST {{baseUrl}}/auth/register
+Content-Type: {{json}}
+
+{
+  "username": "demo_user",
+  "password": "password123",
+  "email": "demo@example.com"
+}
+
+###
+
+### Login
+# @name login
+POST {{baseUrl}}/auth/login
 Content-Type: {{json}}
 
 {
@@ -319,18 +66,13 @@ Content-Type: {{json}}
 
 ###
 
-### Posts ללא JWT — 401
-GET {{baseUrl}}/posts
-
-###
-
-### AI query קצר מדי — 400
-POST {{baseUrl}}/ai/search
+### Me
+GET {{baseUrl}}/users/me
 Authorization: Bearer {{login.response.body.token}}
-Content-Type: {{json}}
-
-{
-  "query": "ab"
-}
 
 ###
+
+### Feed (posts)
+GET {{baseUrl}}/posts?skip=0&limit=10
+Authorization: Bearer {{login.response.body.token}}
+
